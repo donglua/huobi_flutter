@@ -1,36 +1,57 @@
 import 'package:flutter/material.dart';
-import '../api/huobi_api.dart';
+import 'package:http/http.dart' as http;
+
+import 'dart:convert';
+import 'package:http_throttle/http_throttle.dart';
 
 class MarketPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new _MarketPageState();
 }
 
-class _MarketPageState extends State<MarketPage>{
-  List widgets = [];
+class _MarketPageState extends State<MarketPage> {
+  List<Widget> widgets = [];
 
   @override
   void initState() {
     super.initState();
-    final marketService = new MarketService();
-    marketService.getTikers().then((response) {
-      print("getTikers = ${response.body}");
-    }).catchError((object, stackTrace) {
-      print("getTikers error ${stackTrace.toString()}");
+    final client = new ThrottleClient(32);
+
+    client
+        .get("https://api.huobi.pro/market/tickers", headers: {'Content-Type': 'application/json'})
+        .then((response) {
+          print("get market/tickers return ");
+          return response;
+        })
+        .catchError((dynamic, stackTrace){
+          print("get market error $stackTrace\n");
+        })
+        .then((response) => response.body)
+        .then(json.decode)
+        .then((result) => result['data'])
+        .then((list) => list.forEach(_addWidgets));
+  }
+
+  void _addWidgets(dynamic item) {
+    setState(() {
+      widgets.add(new Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          new FlatButton(child: new Text(item['symbol']),textColor: Colors.grey, onPressed: () {},),
+        ],
+      ));
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(appBar: AppBar(title: new Text("行情"),),
+    return new Scaffold(
+      appBar: AppBar(
+        title: new Text("行情"),
+      ),
       body: new Container(
-        child: new Center(
-          child: new Text(
-            'First Page',
-            style: new TextStyle(fontSize: 25.0, color: Colors.teal),
-          ),
-        ),),
+        child: new ListView(scrollDirection: Axis.vertical, children: widgets),
+      ),
     );
   }
 }
-

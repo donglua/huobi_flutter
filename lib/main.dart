@@ -31,10 +31,20 @@ class _HomePageState extends State<HomePage>
 
   int _currentIndex = 0;
 
+  List<Widget> pages = [];
+
+  void initPages() {
+    pages.add(new MarketPage());
+    pages.add(new MarketPage());
+    pages.add(new MarketPage());
+  }
+
   @override
   void initState() {
     super.initState();
     tabController = new TabController(initialIndex: _currentIndex, length: 3, vsync: this);
+
+    initPages();
   }
 
   @override
@@ -42,11 +52,7 @@ class _HomePageState extends State<HomePage>
     return new Scaffold(
         body: new TabBarView(
             controller: tabController,
-            children: [
-              new MarketPage(),
-              new MarketPage(),
-              new MarketPage(),
-            ]),
+            children: pages),
         bottomNavigationBar: new Material(
           color: Colors.blue,
           child: new TabBar(

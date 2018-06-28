@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 import "dart:async";
-import 'package:async/async.dart';
+
+import 'package:rxdart/rxdart.dart';
+
 
 class MarketPage extends StatefulWidget {
   @override
@@ -13,44 +15,96 @@ class MarketPage extends StatefulWidget {
 class _MarketPageState extends State<MarketPage> {
   List<Widget> widgets = [];
 
+  List<dynamic> items = [];
+
+  bool isDisposed = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+    isDisposed = true;
+  }
+
+  void getData() {
+
+    print("---- getData");
+
+    Future<http.Response> getMarketTickers() async {
+      return await http.get("https://api.huobi.pro/market/tickers");
+    }
+
+    Observable.fromFuture(getMarketTickers())
+        .map((response) => response.body)
+        .map(json.decode)
+        .map((result) => result['data'])
+        .listen((list) {
+          items.clear();
+          list.forEach(_addWidgets);
+        },
+        onError: (error, StackTrace stackTrace) {
+          print("get /market/tickers error");
+          print("error -> $stackTrace");
+        });
+  }
+
   @override
   void initState() {
     super.initState();
 
-    http
-        .get("https://api.huobi.pro/market/tickers")
-        .then((response) {
-          print("get market/tickers return ");
-          return response;
-        })
-        .catchError((dynamic, stackTrace){
-          print("get market error $stackTrace\n");
-        })
-        .then((response) => response.body)
-        .then(json.decode)
-        .then((result) => result['data'])
-        .then((list) => list.forEach(_addWidgets));
+    getData();
   }
 
   void _addWidgets(dynamic item) {
-    print("---  item = " + item['symbol']);
-    setState(() {
-      widgets.add(new Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          new FlatButton(child: new Text(item['symbol']),textColor: Colors.grey, onPressed: () {},),
-        ],
-      ));
-    });
+    setState(() => items.add(item));
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
+    print("build Widget");
+
+    return Scaffold(
       appBar: AppBar(
         title: new Text("行情"),
       ),
-      body: new ListView(scrollDirection: Axis.vertical, children: widgets),
+      body: ListView.builder(
+        itemBuilder: (BuildContext context, int index) =>
+            generateItem(items[index]),
+        itemCount: items.length,
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: () => getData(),
+        child: new Icon(Icons.refresh),
+        isExtended: true,),
     );
+  }
+
+  Widget generateItem(dynamic item) {
+
+    final double close = item['close'];
+    final double open = item['open'];
+    final closePrice = '\$' + close.toStringAsFixed(6);
+    final rate = ((close - open) / open * 100).toStringAsFixed(2) + '%';
+    final color = (close - open) >= 0 ? Colors.redAccent : Colors.lightGreen;
+
+    return new Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          new Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              new Text(item['symbol'], style: new TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold
+              )),
+              new Text(closePrice),
+            ],
+          ),
+          new Text(rate, style: new TextStyle(
+              color: color
+          ))
+        ],
+      ),);
   }
 }

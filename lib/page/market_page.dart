@@ -80,9 +80,17 @@ class _MarketPageState extends State<MarketPage> {
 
   Widget generateItem(dynamic item) {
 
+    final String symbol = item['symbol'];
+    final name = symbol
+        .replaceAll(new RegExp("ht\$"), "/HT")
+        .replaceAll(new RegExp("usdt\$"), "/USDT")
+        .replaceAll(new RegExp("btc\$"), "/BTC")
+        .replaceAll(new RegExp("eth\$"), "/ETH")
+        .toUpperCase();
+
     final double close = item['close'];
     final double open = item['open'];
-    final closePrice = '\$' + close.toStringAsFixed(6);
+    final closePrice = close.toStringAsFixed(6);
     final rate = ((close - open) / open * 100).toStringAsFixed(2) + '%';
     final color = (close - open) >= 0 ? Colors.redAccent : Colors.lightGreen;
 
@@ -94,7 +102,7 @@ class _MarketPageState extends State<MarketPage> {
           new Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              new Text(item['symbol'], style: new TextStyle(
+              new Text(name, style: new TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold
               )),

@@ -4,8 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import "dart:async";
 
-import 'package:rxdart/rxdart.dart';
-
 
 class MarketPage extends StatefulWidget {
   @override
@@ -25,26 +23,22 @@ class _MarketPageState extends State<MarketPage> {
     isDisposed = true;
   }
 
-  void getData() {
-
+  void getData() async {
     print("---- getData");
 
-    Future<http.Response> getMarketTickers() async {
-      return await http.get("https://api.huobi.pro/market/tickers");
-    }
-
-    Observable.fromFuture(getMarketTickers())
-        .map((response) => response.body)
-        .map(json.decode)
-        .map((result) => result['data'])
-        .listen((list) {
+    await http.get("https://api.huobi.pro/market/tickers")
+        .then((response) => response.body)
+        .then(json.decode)
+        .then((result) => result['data'])
+        .then((list) {
           items.clear();
           list.forEach(_addWidgets);
-        },
-        onError: (error, StackTrace stackTrace) {
+        })
+        .catchError((error, StackTrace stackTrace) {
           print("get /market/tickers error");
           print("error -> $stackTrace");
         });
+
   }
 
   @override

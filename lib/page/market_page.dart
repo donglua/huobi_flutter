@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
-import 'package:http_throttle/http_throttle.dart';
+import "dart:async";
+import 'package:async/async.dart';
 
 class MarketPage extends StatefulWidget {
   @override
@@ -15,10 +16,9 @@ class _MarketPageState extends State<MarketPage> {
   @override
   void initState() {
     super.initState();
-    final client = new ThrottleClient(32);
 
-    client
-        .get("https://api.huobi.pro/market/tickers", headers: {'Content-Type': 'application/json'})
+    http
+        .get("https://api.huobi.pro/market/tickers")
         .then((response) {
           print("get market/tickers return ");
           return response;
@@ -33,6 +33,7 @@ class _MarketPageState extends State<MarketPage> {
   }
 
   void _addWidgets(dynamic item) {
+    print("---  item = " + item['symbol']);
     setState(() {
       widgets.add(new Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -49,9 +50,7 @@ class _MarketPageState extends State<MarketPage> {
       appBar: AppBar(
         title: new Text("行情"),
       ),
-      body: new Container(
-        child: new ListView(scrollDirection: Axis.vertical, children: widgets),
-      ),
+      body: new ListView(scrollDirection: Axis.vertical, children: widgets),
     );
   }
 }

@@ -1,8 +1,3 @@
 # huobi_flutter
 
-A new Flutter project.
-
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](http://flutter.io/).
+> 使用火币的 api 请自行翻墙。

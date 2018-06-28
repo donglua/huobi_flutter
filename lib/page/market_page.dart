@@ -67,8 +67,7 @@ class _MarketPageState extends State<MarketPage> {
       ),
       floatingActionButton: new FloatingActionButton(
         onPressed: () => getData(),
-        child: new Icon(Icons.refresh),
-        isExtended: true,),
+        child: new Icon(Icons.refresh),),
     );
   }
 
